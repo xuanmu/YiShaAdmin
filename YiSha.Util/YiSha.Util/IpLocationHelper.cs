@@ -19,17 +19,13 @@ namespace YiSha.Util
                     ipLocation = GetIpLocationFromTaoBao(ipAddress);
                     if (string.IsNullOrEmpty(ipLocation))
                     {
-                        ipLocation = GetIpLocationFromIpIp(ipAddress);
-                    }
-                    if (string.IsNullOrEmpty(ipLocation))
-                    {
                         ipLocation = GetIpLocationFromPCOnline(ipAddress);
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogHelper.Write(ex);
+                LogHelper.Error(ex);
             }
             return ipLocation;
         }

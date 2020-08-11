@@ -15,7 +15,7 @@
             url: _option.url,
             async: _option.async,
             success: function (data) {
-                var tree = $.fn.zTree.init($("#" + id), _option, data.Result);
+                var tree = $.fn.zTree.init($("#" + id), _option, data.Data);
                 for (var level = 0; level <= _option.expandLevel; level++) {
                     var nodes = tree.getNodesByParam("level", level);
                     for (var i = 0; i < nodes.length; i++) {
@@ -59,7 +59,7 @@
         }
     };
     $.fn.ysTree.defaults = {
-        url:'',
+        url: '',
         async: false,
         maxHeight: "300px",
         expandLevel: 0,
@@ -105,6 +105,8 @@
                 var targetTree = $("#" + eleTreeId);
                 var targetInput = $("#" + eleInputId);
 
+                // 用户定义的onClick回调
+                var customOnClick = _option.callback.customOnClick;
                 // OnClick callback
                 _option.callback.onClick = function (event, treeId, treeNode) {
                     var wholeName = '';
@@ -123,9 +125,13 @@
 
                     targetInput.val(wholeName);
                     targetTree.hide();
+
+                    if (customOnClick) {
+                        customOnClick(event, treeId, treeNode);
+                    }
                 };
 
-                target.ztree = $.fn.zTree.init($("#" + eleTreeId), _option, data.Result);
+                target.ztree = $.fn.zTree.init($("#" + eleTreeId), _option, data.Data);
                 if (_option.expandLevel >= 0) {
                     for (var level = 0; level <= _option.expandLevel; level++) {
                         var nodes = target.ztree.getNodesByParam("level", level);
@@ -170,7 +176,7 @@
                 zTreeObj.cancelSelectedNode();//先取消所有的选中状态
                 zTreeObj.selectNode(node, true);//将指定ID的节点选中
                 zTreeObj.expandNode(node, true, false);//将指定ID节点展开
-                zTreeObj.setting.callback.onClick(null, zTreeObj.setting.treeId, node); //触发onclick
+                zTreeObj.setting.callback.onClick('setValue', zTreeObj.setting.treeId, node); //触发onclick
             }
             return $(target);
         }

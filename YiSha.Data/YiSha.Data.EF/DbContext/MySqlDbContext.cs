@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using YiSha.Util;
 
 namespace YiSha.Data.EF
 {
@@ -19,7 +20,8 @@ namespace YiSha.Data.EF
         #region 重载
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseMySql(ConnectionString);
+            optionsBuilder.UseMySql(ConnectionString, p => p.CommandTimeout(GlobalContext.SystemConfig.DBCommandTimeout));
+            optionsBuilder.AddInterceptors(new DbCommandCustomInterceptor());
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,14 +36,14 @@ namespace YiSha.Data.EF
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
                 PrimaryKeyConvention.SetPrimaryKey(modelBuilder, entity.Name);
-                var currentTableName = modelBuilder.Entity(entity.Name).Metadata.GetTableName();
-                modelBuilder.Entity(entity.Name).ToTable(currentTableName.ToLower());
+                string currentTableName = modelBuilder.Entity(entity.Name).Metadata.GetTableName();
+                modelBuilder.Entity(entity.Name).ToTable(currentTableName);
 
-                var properties = entity.GetProperties();
-                foreach (var property in properties)
-                {
-                    ColumnConvention.SetColumnName(modelBuilder, entity.Name, property.Name);
-                }
+                //var properties = entity.GetProperties();
+                //foreach (var property in properties)
+                //{
+                //    ColumnConvention.SetColumnName(modelBuilder, entity.Name, property.Name);
+                //}
             }
 
             base.OnModelCreating(modelBuilder);

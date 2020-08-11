@@ -22,7 +22,7 @@ namespace YiSha.Admin.Web.Controllers
 {
     public class HomeController : BaseController
     {
-        private MenuBLL baseMenuBLL = new MenuBLL();
+        private MenuBLL menuBLL = new MenuBLL();
         private UserBLL userBLL = new UserBLL();
         private LogLoginBLL logLoginBLL = new LogLoginBLL();
         private MenuAuthorizeBLL menuAuthorizeBLL = new MenuAuthorizeBLL();
@@ -30,19 +30,18 @@ namespace YiSha.Admin.Web.Controllers
         #region 视图功能
         [HttpGet]
         [AuthorizeFilter]
-
         public async Task<IActionResult> Index()
         {
             OperatorInfo operatorInfo = await Operator.Instance.Current();
 
-            TData<List<MenuEntity>> objMenu = await baseMenuBLL.GetList(null);
-            List<MenuEntity> menuList = objMenu.Result;
+            TData<List<MenuEntity>> objMenu = await menuBLL.GetList(null);
+            List<MenuEntity> menuList = objMenu.Data;
             menuList = menuList.Where(p => p.MenuStatus == StatusEnum.Yes.ParseToInt()).ToList();
 
             if (operatorInfo.IsSystem != 1)
             {
                 TData<List<MenuAuthorizeInfo>> objMenuAuthorize = await menuAuthorizeBLL.GetAuthorizeList(operatorInfo);
-                List<long?> authorizeMenuIdList = objMenuAuthorize.Result.Select(p => p.MenuId).ToList();
+                List<long?> authorizeMenuIdList = objMenuAuthorize.Data.Select(p => p.MenuId).ToList();
                 menuList = menuList.Where(p => authorizeMenuIdList.Contains(p.Id)).ToList();
             }
 
@@ -151,8 +150,8 @@ namespace YiSha.Admin.Web.Controllers
             TData<UserEntity> userObj = await userBLL.CheckLogin(userName, password, (int)PlatformEnum.Web);
             if (userObj.Tag == 1)
             {
-                await new UserBLL().UpdateUser(userObj.Result);
-                await Operator.Instance.AddCurrent(userObj.Result.WebToken);
+                await new UserBLL().UpdateUser(userObj.Data);
+                await Operator.Instance.AddCurrent(userObj.Data.WebToken);
             }
 
             string ip = NetHelper.Ip;
@@ -171,7 +170,7 @@ namespace YiSha.Admin.Web.Controllers
                     Browser = browser,
                     OS = os,
                     ExtraRemark = userAgent,
-                    BaseCreatorId = userObj.Result?.Id
+                    BaseCreatorId = userObj.Data?.Id
                 };
 
                 // 让底层不用获取HttpContext

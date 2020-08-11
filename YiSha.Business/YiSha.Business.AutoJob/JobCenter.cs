@@ -21,13 +21,10 @@ namespace YiSha.Business.AutoJob
         {
             Task.Run(async () =>
             {
-                if (!GlobalContext.SystemConfig.Debug)
+                TData<List<AutoJobEntity>> obj = await new AutoJobBLL().GetList(null);
+                if (obj.Tag == 1)
                 {
-                    TData<List<AutoJobEntity>> obj = await new AutoJobBLL().GetList(null);
-                    if (obj.Tag == 1)
-                    {
-                        new JobCenter().AddScheduleJob(obj.Result);
-                    }
+                    AddScheduleJob(obj.Data);
                 }
             });
         }
@@ -41,7 +38,7 @@ namespace YiSha.Business.AutoJob
         {
             try
             {
-                foreach (AutoJobEntity entity in entityList.Where(p => p.JobStatus == StatusEnum.Yes.ParseToInt()))
+                foreach (AutoJobEntity entity in entityList)
                 {
                     if (entity.StartTime == null)
                     {
@@ -71,7 +68,7 @@ namespace YiSha.Business.AutoJob
             }
             catch (Exception ex)
             {
-                LogHelper.Write(ex);
+                LogHelper.Error(ex);
             }
         }
         #endregion
@@ -89,7 +86,7 @@ namespace YiSha.Business.AutoJob
             }
             catch (Exception ex)
             {
-                LogHelper.Write(ex);
+                LogHelper.Error(ex);
             }
         }
         #endregion

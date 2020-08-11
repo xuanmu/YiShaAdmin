@@ -24,8 +24,8 @@ namespace YiSha.Business.StockManage
         public async Task<TData<List<StockmaterEntity>>> GetList(StockmaterListParam param)
         {
             TData<List<StockmaterEntity>> obj = new TData<List<StockmaterEntity>>();
-            obj.Result = await stockmaterService.GetList(param);
-            obj.TotalCount = obj.Result.Count;
+            obj.Data = await stockmaterService.GetList(param);
+            obj.Total = obj.Data.Count;
             obj.Tag = 1;
             return obj;
         }
@@ -33,8 +33,8 @@ namespace YiSha.Business.StockManage
         public async Task<TData<List<StockmaterEntity>>> GetPageList(StockmaterListParam param, Pagination pagination)
         {
             TData<List<StockmaterEntity>> obj = new TData<List<StockmaterEntity>>();
-            obj.Result = await stockmaterService.GetPageList(param, pagination);
-            obj.TotalCount = pagination.TotalCount;
+            obj.Data = await stockmaterService.GetPageList(param, pagination);
+            obj.Total = pagination.TotalCount;
             obj.Tag = 1;
             return obj;
         }
@@ -42,8 +42,8 @@ namespace YiSha.Business.StockManage
         public async Task<TData<StockmaterEntity>> GetEntity(long id)
         {
             TData<StockmaterEntity> obj = new TData<StockmaterEntity>();
-            obj.Result = await stockmaterService.GetEntity(id);
-            if (obj.Result != null)
+            obj.Data = await stockmaterService.GetEntity(id);
+            if (obj.Data != null)
             {
                 obj.Tag = 1;
             }
@@ -56,7 +56,7 @@ namespace YiSha.Business.StockManage
         {
             TData<string> obj = new TData<string>();
             await stockmaterService.SaveForm(entity);
-            obj.Result = entity.Id.ParseToString();
+            obj.Data = entity.Id.ParseToString();
             obj.Tag = 1;
             return obj;
         }

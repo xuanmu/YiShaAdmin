@@ -3,13 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
+using System.Data.Common;
 using System.Dynamic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.ComponentModel;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using YiSha.Util;
+using YiSha.Util.Extension;
 
 namespace YiSha.Data
 {
-    public class DatabasesExtension
+    public static class DatabasesExtension
     {
         /// <summary>
         /// 将DataReader数据转为Dynamic对象
@@ -78,7 +85,7 @@ namespace YiSha.Data
                 while (reader.Read())
                 {
                     T model = Activator.CreateInstance<T>();
-                    foreach (PropertyInfo property in model.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance))
+                    foreach (PropertyInfo property in ReflectionHelper.GetProperties(model.GetType()))
                     {
                         if (field.Contains(property.Name.ToLower()))
                         {
@@ -157,6 +164,36 @@ namespace YiSha.Data
             return ht;
         }
 
+        public static IQueryable<T> AppendSort<T>(IQueryable<T> tempData, string sort, bool isAsc)
+        {
+            string[] sortArr = sort.Split(',');
+            MethodCallExpression resultExpression = null;
+            for (int index = 0; index < sortArr.Length; index++)
+            {
+                string[] oneSortArr = sortArr[index].Trim().Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                string sortField = oneSortArr[0];
+                bool sortAsc = isAsc;
+                if (oneSortArr.Length == 2)
+                {
+                    sortAsc = string.Equals(oneSortArr[1], "asc", StringComparison.OrdinalIgnoreCase) ? true : false;
+                }
+                var parameter = Expression.Parameter(typeof(T), "t");
+                var property = ReflectionHelper.GetProperties(typeof(T)).Where(p => p.Name.ToLower() == sortField.ToLower()).FirstOrDefault();
+                var propertyAccess = Expression.MakeMemberAccess(parameter, property);
+                var orderByExpression = Expression.Lambda(propertyAccess, parameter);
+                if (index == 0)
+                {
+                    resultExpression = Expression.Call(typeof(Queryable), sortAsc ? "OrderBy" : "OrderByDescending", new Type[] { typeof(T), property.PropertyType }, tempData.Expression, Expression.Quote(orderByExpression));
+                }
+                else
+                {
+                    resultExpression = Expression.Call(typeof(Queryable), sortAsc ? "ThenBy" : "ThenByDescending", new Type[] { typeof(T), property.PropertyType }, tempData.Expression, Expression.Quote(orderByExpression));
+                }
+                tempData = tempData.Provider.CreateQuery<T>(resultExpression);
+            }
+            return tempData;
+        }
+
         //这个类对可空类型进行判断转换，要不然会报错
         public static object HackType(object value, Type conversionType)
         {
@@ -164,7 +201,7 @@ namespace YiSha.Data
             {
                 if (value == null)
                     return null;
-                System.ComponentModel.NullableConverter nullableConverter = new System.ComponentModel.NullableConverter(conversionType);
+                NullableConverter nullableConverter = new NullableConverter(conversionType);
                 conversionType = nullableConverter.UnderlyingType;
             }
             return Convert.ChangeType(value, conversionType);
@@ -174,5 +211,62 @@ namespace YiSha.Data
         {
             return ((obj is DBNull) || string.IsNullOrEmpty(obj.ToString())) ? true : false;
         }
+
+        /// <summary>
+        /// 获取使用Linq生成的Sql
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        public static string GetSql<TEntity>(this IQueryable<TEntity> query)
+        {
+            var enumerator = query.Provider.Execute<IEnumerable<TEntity>>(query.Expression).GetEnumerator();
+            var relationalCommandCache = enumerator.Private("_relationalCommandCache");
+            var selectExpression = relationalCommandCache.Private<SelectExpression>("_selectExpression");
+            var factory = relationalCommandCache.Private<IQuerySqlGeneratorFactory>("_querySqlGeneratorFactory");
+
+            var sqlGenerator = factory.Create();
+            var command = sqlGenerator.GetCommand(selectExpression);
+
+            string sql = command.CommandText;
+            return sql;
+        }
+
+        /// <summary>
+        /// 获取运行时的Sql
+        /// </summary>
+        /// <param name="dbCommand"></param>
+        /// <returns></returns>
+        public static string GetCommandText(this DbCommand dbCommand)
+        {
+            var sql = dbCommand.CommandText;
+            foreach (DbParameter parameter in dbCommand.Parameters)
+            {
+                try
+                {
+                    string value = string.Empty;
+                    switch (parameter.DbType)
+                    {
+                        case DbType.Date:
+                            value = parameter.Value.ParseToString().ParseToDateTime().ToString("yyyy-MM-dd HH:mm:ss");
+                            break;
+                        default:
+                            value = parameter.Value.ParseToString();
+                            break;
+                    }
+                    sql = sql.Replace(parameter.ParameterName, value);
+                }
+                catch(Exception ex)
+                {
+                    LogHelper.Error(ex);
+                }
+            }
+            return sql;
+        }
+
+        #region 私有方法
+        private static object Private(this object obj, string privateField) => obj?.GetType().GetField(privateField, BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(obj);
+        private static T Private<T>(this object obj, string privateField) => (T)obj?.GetType().GetField(privateField, BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(obj);
+        #endregion
     }
 }

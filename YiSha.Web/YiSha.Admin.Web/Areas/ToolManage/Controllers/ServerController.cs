@@ -34,10 +34,10 @@ namespace YiSha.Admin.Web.Areas.ToolManage.Controllers
             }
             catch (Exception ex)
             {
-                LogHelper.WriteWithTime(ex);
+                LogHelper.Error(ex);
                 obj.Message = ex.Message;
             }
-            obj.Result = computerInfo;
+            obj.Data = computerInfo;
             obj.Tag = 1;
             return Json(obj);
         }
@@ -47,7 +47,7 @@ namespace YiSha.Admin.Web.Areas.ToolManage.Controllers
             TData<string> obj = new TData<string>();
             string ip = NetHelper.GetWanIp();
             string ipLocation = IpLocationHelper.GetIpLocation(ip);
-            obj.Result = string.Format("{0} ({1})", ip, ipLocation);
+            obj.Data = string.Format("{0} ({1})", ip, ipLocation);
             obj.Tag = 1;
             return Json(obj);
         }

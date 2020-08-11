@@ -31,9 +31,9 @@ namespace YiSha.Service.SystemManage
             string where = string.Empty;
             if (parentId > 0)
             {
-                where += " AND parent_id = " + parentId;
+                where += " AND ParentId = " + parentId;
             }
-            object result = await this.BaseRepository().FindObject("SELECT MAX(menu_sort) FROM sys_menu where base_is_delete=0 " + where);
+            object result = await this.BaseRepository().FindObject("SELECT MAX(MenuSort) FROM SysMenu where BaseIsDelete = 0 " + where);
             int sort = result.ParseToInt();
             sort++;
             return sort;
@@ -72,8 +72,19 @@ namespace YiSha.Service.SystemManage
 
         public async Task DeleteForm(string ids)
         {
-            long[] idArr = TextHelper.SplitToArray<long>(ids, ',');
-            await this.BaseRepository().Delete<MenuEntity>(p => idArr.Contains(p.Id.Value) || idArr.Contains(p.ParentId.Value));
+            var db = await this.BaseRepository().BeginTrans();
+            try
+            {
+                long[] idArr = TextHelper.SplitToArray<long>(ids, ',');
+                await db.Delete<MenuEntity>(p => idArr.Contains(p.Id.Value) || idArr.Contains(p.ParentId.Value));
+                await db.Delete<MenuAuthorizeEntity>(p => idArr.Contains(p.MenuId.Value));
+                await db.CommitTrans();
+            }
+            catch
+            {
+                await db.RollbackTrans();
+                throw;
+            }
         }
         #endregion
 

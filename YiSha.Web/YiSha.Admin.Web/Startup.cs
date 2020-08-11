@@ -18,6 +18,7 @@ using YiSha.Util;
 using YiSha.Util.Model;
 using YiSha.Admin.Web.Controllers;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace YiSha.Admin.Web
 {

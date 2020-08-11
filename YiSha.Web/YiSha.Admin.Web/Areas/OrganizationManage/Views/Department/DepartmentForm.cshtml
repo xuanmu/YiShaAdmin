@@ -78,10 +78,8 @@
                 type: "get",
                 success: function (obj) {
                     if (obj.Tag == 1) {
-                        var result = obj.Result;
+                        var result = obj.Data;
                         $("#form").setWebControls(result);
-                        $('#parentId').ysComboBoxTree("setValue", result.ParentId);
-                        $('#principalId').ysComboBoxTree("setValue", result.PrincipalId);
                     }
                 }
             });
@@ -92,7 +90,7 @@
                 type: "get",
                 success: function (obj) {
                     if (obj.Tag == 1) {
-                        $("#departmentSort").val(obj.Result);
+                        $("#departmentSort").val(obj.Data);
                     }
                 }
             });
@@ -111,7 +109,7 @@
                 success: function (obj) {
                     if (obj.Tag == 1) {
                         ys.msgSuccess(obj.Message);
-                        parent.searchTreeGrid();
+                        parent.searchTreeGrid(obj.Data);
                         parent.layer.close(index);
                     }
                     else {

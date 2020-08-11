@@ -101,7 +101,7 @@ namespace YiSha.Service.SystemManage
         }
         private async Task SyncSqlServerTable<T>() where T : class, new()
         {
-            string sqlServerConnectionString = "Server=localhost;Database=yisha_admin;User Id=sa;Password=123456;";
+            string sqlServerConnectionString = "Server=localhost;Database=YiShaAdmin;User Id=sa;Password=123456;";
             IEnumerable<T> list = await this.BaseRepository().FindList<T>();
 
             await new SqlServerDatabase(sqlServerConnectionString).Delete<T>(p => true);
@@ -135,13 +135,18 @@ namespace YiSha.Service.SystemManage
             foreach (TableInfo table in list)
             {
                 table.TableKey = string.Join(",", detailList.Where(p => p.TableName == table.TableName).Select(p => p.TableKey));
-                table.TableKeyName = detailList.Where(p => p.TableName == table.TableName).Select(p => p.TableKeyName).FirstOrDefault();
-                table.TableCount = detailList.Where(p => p.TableName == table.TableName).Select(p => p.TableCount).FirstOrDefault();
+                var tableInfo = detailList.Where(p => p.TableName == table.TableName).FirstOrDefault();
+                if (tableInfo != null)
+                {
+                    table.TableKeyName = tableInfo.TableKeyName;
+                    table.TableCount = tableInfo.TableCount;
+                    table.Remark = tableInfo.Remark;
+                }
             }
         }
         private string GetDatabase()
         {
-            string database = HtmlHelper.Resove(GlobalContext.SystemConfig.DBConnectionString.ToLower(), "database=", ";");
+            string database = HtmlHelper.Resove(GlobalContext.SystemConfig.DBConnectionString, "database=", ";");
             return database;
         }
         #endregion
