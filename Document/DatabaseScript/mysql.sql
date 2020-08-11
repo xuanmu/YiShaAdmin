@@ -1,12 +1,4 @@
-﻿/* 执行脚本前，请先选择数据库，脚本会先删除表，然后再创建表，写入数据，请谨慎执行！！！ */;
-/* use yisha_admin; */;
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET NAMES utf8 */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-
+﻿
 DROP TABLE IF EXISTS `sys_area`;
 CREATE TABLE IF NOT EXISTS `sys_area` (
   `id` bigint(20) NOT NULL,

@@ -76,5 +76,6 @@ namespace YiSha.CodeGenerator.Model
         /// </summary>
         public int ShowMode { get; set; }
         public List<string> FieldList { get; set; }
+        public List<string> CaptionList { get; set; }
     }
 }

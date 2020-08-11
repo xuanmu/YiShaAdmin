@@ -27,7 +27,8 @@ namespace YiSha.Admin.WebApi.Controllers
         [HttpGet]
         public async Task<TData<List<DataDictInfo>>> GetList([FromQuery]DataDictListParam param)
         {
-            TData<List<DataDictInfo>> obj = await dataDictBLL.GetDataDictList();
+            //过滤
+            TData<List<DataDictInfo>> obj = await dataDictBLL.GetDataDictList(param);
             obj.Tag = 1;
             return obj;
         }

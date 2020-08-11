@@ -43,9 +43,16 @@ namespace YiSha.Util
             if (!string.IsNullOrEmpty(result))
             {
                 var json = JsonHelper.ToJObject(result);
-                var jsonData = json["data"];
-                ipLocation = jsonData["region"] + " " + jsonData["city"];
-                ipLocation = ipLocation.Trim();
+                if (json["code"].ToString() == "0")
+                {
+                    var jsonData = json["data"];
+                    ipLocation = jsonData["region"] + " " + jsonData["city"];
+                    ipLocation = ipLocation.Trim();
+                }
+                else
+                {
+                    ipLocation = "获取ip位置信息失败，返回错误码：" + json["code"].ToString();
+                }
             }
             return ipLocation;
         }

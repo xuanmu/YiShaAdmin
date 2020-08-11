@@ -60,10 +60,10 @@ namespace YiSha.Business.SystemManage
         /// 获取所有的数据字典
         /// </summary>
         /// <returns></returns>
-        public async Task<TData<List<DataDictInfo>>> GetDataDictList()
+        public async Task<TData<List<DataDictInfo>>> GetDataDictList(DataDictListParam param)
         {
             TData<List<DataDictInfo>> obj = new TData<List<DataDictInfo>>();
-            List<DataDictEntity> dataDictList = await dataDictCache.GetList();
+            List<DataDictEntity> dataDictList = await dataDictService.GetList(param);
             List<DataDictDetailEntity> dataDictDetailList = await dataDictDetailCache.GetList();
             List<DataDictInfo> dataDictInfoList = new List<DataDictInfo>();
             foreach (DataDictEntity dataDict in dataDictList)
@@ -86,6 +86,15 @@ namespace YiSha.Business.SystemManage
             obj.Result = dataDictInfoList;
             obj.Tag = 1;
             return obj;
+        }
+
+        /// <summary>
+        /// 获取所有的数据字典
+        /// </summary>
+        /// <returns></returns>
+        public async Task<TData<List<DataDictInfo>>> GetDataDictList()
+        {
+            return await GetDataDictList(null);
         }
         #endregion
 
